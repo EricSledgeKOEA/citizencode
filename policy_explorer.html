@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UK Policy Explorer – CitizenCode</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+        integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3oD+sCoJrzXJ+yKwtkiQMWhiAgaN+nAqTYqUXqe9aTzbJEgP7bGJqQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --blue-50:   #eff6ff; --blue-100: #dbeafe;
+  --blue-600:  #2563eb; --blue-700: #1d4ed8;
+  --green-50:  #f0fdf4; --green-100: #dcfce7;
+  --green-600: #16a34a; --green-700: #15803d;
+  --amber-50:  #fffbeb; --amber-100: #fef3c7; --amber-600: #d97706;
+  --purple-50: #faf5ff; --purple-100: #ede9fe;
+  --purple-600:#7c3aed; --purple-700: #6d28d9;
+  --teal-50:   #f0fdfa; --teal-100: #ccfbf1;
+  --teal-600:  #0d9488; --teal-700: #0f766e;
+  --red-600:   #dc2626;
+  --slate-50:  #f8fafc; --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0; --slate-300: #cbd5e1;
+  --slate-400: #94a3b8; --slate-500: #64748b;
+  --slate-600: #475569; --slate-700: #334155;
+  --slate-800: #1e293b; --slate-900: #0f172a;
+  --radius: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --shadow:    0 4px 6px -1px rgba(0,0,0,.08), 0 2px 4px -2px rgba(0,0,0,.06);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: var(--slate-50);
+  color: var(--slate-800);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+header {
+  background: #fff;
+  border-bottom: 1px solid var(--slate-200);
+  padding: 0 2rem;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 1rem;
+  height: 60px;
+  box-shadow: var(--shadow-sm);
+}
+.logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--blue-600), var(--green-600));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-weight: 700; font-size: .85rem; letter-spacing: -.5px;
+  flex-shrink: 0;
+}
+.header-title  { font-size: 1rem; font-weight: 600; color: var(--slate-900); }
+.header-sub    { font-size: .8rem; color: var(--slate-500); margin-left: auto; }
+.badge {
+  font-size: .7rem; font-weight: 600; letter-spacing: .04em;
+  padding: .2rem .55rem; border-radius: 999px;
+  background: var(--blue-50); color: var(--blue-600);
+  border: 1px solid var(--blue-100);
+}
+
+/* ── Layout ──────────────────────────────────────────────── */
+main { max-width: 1260px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+section { margin-bottom: 2.5rem; }
+h2 { font-size: 1.1rem; font-weight: 700; color: var(--slate-900); margin-bottom: .2rem; }
+.section-sub { font-size: .85rem; color: var(--slate-500); margin-bottom: 1.25rem; }
+
+/* ── Pre-computed cards ───────────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+.card {
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow .2s;
+}
+.card:hover { box-shadow: var(--shadow); }
+.card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  margin-bottom: 1rem; gap: .5rem;
+}
+.card-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+}
+.card-icon.blue   { background: var(--blue-50);   color: var(--blue-600); }
+.card-icon.green  { background: var(--green-50);  color: var(--green-600); }
+.card-icon.amber  { background: var(--amber-50);  color: var(--amber-600); }
+.card-title  { font-size: .9rem; font-weight: 600; color: var(--slate-800); }
+.card-desc   { font-size: .78rem; color: var(--slate-500); margin-top: .15rem; }
+.stats-row   { display: grid; grid-template-columns: repeat(3,1fr); gap: .75rem; margin: 1rem 0; }
+.stat        { text-align: center; }
+.stat-val    { font-size: 1.5rem; font-weight: 700; color: var(--slate-900); line-height: 1.1; }
+.stat-val.pos { color: var(--green-600); }
+.stat-label  { font-size: .72rem; color: var(--slate-500); margin-top: .2rem; }
+.delta       { font-size: .8rem; font-weight: 600; }
+.delta.down  { color: var(--green-600); }
+.delta.up    { color: var(--red-600); }
+hr.div       { border: none; border-top: 1px solid var(--slate-100); margin: 1rem 0; }
+.chart-sm    { position: relative; height: 155px; }
+.card-note   {
+  font-size: .75rem; color: var(--slate-400); font-style: italic;
+  margin-top: .75rem; padding-top: .75rem;
+  border-top: 1px solid var(--slate-100);
+}
+
+/* ── Interactive explorer panel ───────────────────────────── */
+.explorer-wrap {
+  background: #fff;
+  border: 1px solid var(--slate-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Controls header bar */
+.explorer-header {
+  background: var(--slate-50);
+  border-bottom: 1px solid var(--slate-200);
+  padding: .9rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.explorer-header h3 { font-size: .9rem; font-weight: 700; color: var(--slate-800); }
+.lever-count-badge {
+  font-size: .72rem; font-weight: 700; padding: .2rem .6rem;
+  border-radius: 999px; background: var(--blue-600); color: #fff;
+  transition: background .3s;
+}
+.lever-count-badge.zero { background: var(--slate-300); color: var(--slate-600); }
+
+/* Grid of policy group cards */
+.policy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border-bottom: 1px solid var(--slate-200);
+}
+@media (max-width: 800px) { .policy-grid { grid-template-columns: 1fr; } }
+
+.policy-group {
+  padding: 1.25rem 1.5rem;
+  border-right: 1px solid var(--slate-100);
+  border-bottom: 1px solid var(--slate-100);
+}
+.policy-group:nth-child(even) { border-right: none; }
+.policy-group:nth-last-child(-n+2) { border-bottom: none; }
+@media (max-width: 800px) {
+  .policy-group { border-right: none; }
+  .policy-group:last-child { border-bottom: none; }
+}
+
+.group-header {
+  display: flex; align-items: center; gap: .5rem;
+  margin-bottom: 1rem;
+}
+.group-pip {
+  width: 4px; height: 20px; border-radius: 2px; flex-shrink: 0;
+}
+.group-label {
+  font-size: .72rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase;
+}
+.group-pip.housing  { background: var(--blue-600); }
+.group-label.housing{ color: var(--blue-600); }
+.group-pip.income   { background: var(--green-600); }
+.group-label.income { color: var(--green-600); }
+.group-pip.family   { background: var(--purple-600); }
+.group-label.family { color: var(--purple-600); }
+.group-pip.regional { background: var(--teal-600); }
+.group-label.regional{color: var(--teal-600); }
+
+/* Individual control rows */
+.ctl { margin-bottom: 1rem; }
+.ctl:last-child { margin-bottom: 0; }
+
+.ctl-label {
+  font-size: .8rem; font-weight: 600; color: var(--slate-700);
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: .35rem;
+}
+.ctl-label em { font-style: normal; font-weight: 400; color: var(--blue-600); font-size: .78rem; }
+
+.ctl-hint {
+  font-size: .7rem; color: var(--slate-400); margin-top: .2rem; line-height: 1.35;
+}
+
+select {
+  width: 100%; padding: .45rem .7rem;
+  border: 1px solid var(--slate-200); border-radius: 7px;
+  font-size: .82rem; color: var(--slate-800); background: #fff;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%2394a3b8' d='M5 7L0 2h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .65rem center;
+  padding-right: 1.75rem;
+  cursor: pointer;
+  transition: border-color .15s;
+}
+select:focus { outline: none; border-color: var(--blue-600); box-shadow: 0 0 0 3px var(--blue-100); }
+
+input[type="range"] {
+  width: 100%; height: 4px;
+  -webkit-appearance: none; appearance: none;
+  background: var(--slate-200); border-radius: 999px; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--blue-600);
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(37,99,235,.35);
+}
+input[type="range"].green::-webkit-slider-thumb { background: var(--green-600); box-shadow: 0 1px 3px rgba(22,163,74,.35); }
+input[type="range"].purple::-webkit-slider-thumb{ background: var(--purple-600); box-shadow: 0 1px 3px rgba(124,58,237,.35); }
+input[type="range"].teal::-webkit-slider-thumb  { background: var(--teal-600);  box-shadow: 0 1px 3px rgba(13,148,136,.35); }
+
+.range-row { display: flex; align-items: center; gap: .5rem; }
+.range-row input { flex: 1; }
+.range-val {
+  min-width: 36px; text-align: right;
+  font-size: .8rem; font-weight: 700; color: var(--blue-600);
+}
+.range-val.green  { color: var(--green-600); }
+.range-val.purple { color: var(--purple-600); }
+.range-val.teal   { color: var(--teal-600); }
+
+/* Toggle switch */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: .75rem;
+}
+.toggle-desc { font-size: .8rem; color: var(--slate-600); flex: 1; }
+.toggle { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0;
+  background: var(--slate-200); border-radius: 999px; cursor: pointer;
+  transition: background .2s;
+}
+.toggle-thumb {
+  position: absolute;
+  height: 16px; width: 16px;
+  left: 3px; top: 3px;
+  background: #fff; border-radius: 50%;
+  transition: transform .2s;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.toggle input:checked ~ .toggle-track { background: var(--purple-600); }
+.toggle input:checked ~ .toggle-thumb { transform: translateX(18px); }
+.toggle input:focus ~ .toggle-track { box-shadow: 0 0 0 3px var(--purple-100); }
+
+/* Action bar */
+.action-bar {
+  padding: 1rem 1.5rem;
+  display: flex; align-items: center; gap: .75rem;
+  border-bottom: 1px solid var(--slate-200);
+  background: var(--slate-50);
+}
+.btn-run {
+  padding: .6rem 1.5rem;
+  background: var(--blue-600); color: #fff;
+  border: none; border-radius: 8px;
+  font-size: .875rem; font-weight: 600; cursor: pointer;
+  transition: background .15s, transform .1s;
+  display: flex; align-items: center; gap: .4rem;
+}
+.btn-run:hover   { background: var(--blue-700); }
+.btn-run:active  { transform: scale(.98); }
+.btn-reset {
+  padding: .6rem 1rem;
+  background: transparent; color: var(--slate-600);
+  border: 1px solid var(--slate-200); border-radius: 8px;
+  font-size: .82rem; cursor: pointer;
+  transition: background .15s;
+}
+.btn-reset:hover { background: var(--slate-100); }
+.model-note {
+  margin-left: auto;
+  font-size: .72rem; color: var(--slate-400); font-style: italic;
+}
+
+/* Results section */
+.results-section {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+}
+@media (max-width: 900px) { .results-section { grid-template-columns: 1fr; } }
+
+.chart-pane  { padding: 1.5rem; border-right: 1px solid var(--slate-100); }
+.summary-pane{ padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+.pane-title {
+  font-size: .72rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--slate-500);
+  margin-bottom: 1rem;
+}
+
+/* 4 metric chips */
+.metric-chips { display: grid; grid-template-columns: repeat(2,1fr); gap: .5rem; }
+.metric-chip {
+  background: var(--slate-50); border: 1px solid var(--slate-200);
+  border-radius: 8px; padding: .65rem .75rem; text-align: center;
+}
+.chip-val  { font-size: 1.2rem; font-weight: 700; color: var(--slate-900); }
+.chip-base { font-size: .7rem; color: var(--slate-400); margin: .05rem 0; }
+.chip-delta{ font-size: .75rem; font-weight: 700; }
+.chip-delta.neg { color: var(--green-600); }
+.chip-delta.pos { color: var(--red-600); }
+.chip-delta.nil { color: var(--slate-400); }
+.chip-label{ font-size: .7rem; color: var(--slate-500); margin-top: .15rem; }
+
+.chart-lg { position: relative; height: 240px; }
+
+/* Plain-English summary */
+.summary-box {
+  background: var(--blue-50);
+  border: 1px solid var(--blue-100);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  font-size: .82rem; color: var(--slate-700); line-height: 1.65;
+}
+.summary-box strong { color: var(--slate-900); }
+.summary-headline {
+  font-weight: 700; font-size: .875rem; color: var(--blue-700);
+  margin-bottom: .5rem;
+}
+.summary-bullets { padding-left: 1rem; }
+.summary-bullets li { margin-bottom: .3rem; }
+.summary-driver  {
+  margin-top: .75rem; padding-top: .75rem;
+  border-top: 1px solid var(--blue-100);
+  font-size: .75rem; color: var(--slate-500); font-style: italic;
+}
+
+.empty-state {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: .5rem;
+  color: var(--slate-400); text-align: center; padding: 1.5rem 0;
+}
+.empty-icon { font-size: 2rem; }
+.empty-text { font-size: .82rem; line-height: 1.5; }
+
+/* Footer */
+footer {
+  text-align: center; padding: 2rem 1rem;
+  font-size: .78rem; color: var(--slate-400);
+  border-top: 1px solid var(--slate-200);
+  background: #fff; margin-top: 3rem;
+}
+footer a { color: var(--blue-600); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">CC</div>
+  <div>
+    <div class="header-title">UK Policy Explorer</div>
+  </div>
+  <span class="badge">CitizenCode</span>
+  <div class="header-sub">Synthetic population · ONS 2024 · N = 10,000</div>
+</header>
+
+<main>
+
+<!-- ═══════════════════════════════════════════════════════
+     PRE-COMPUTED SCENARIO CARDS
+═══════════════════════════════════════════════════════ -->
+<section>
+  <h2>📊 Pre-computed scenarios</h2>
+  <p class="section-sub">Three policy simulations run against the ONS 2024 anchored synthetic population.</p>
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🏠 Housing cost subsidy</div>
+          <div class="card-desc">20% subsidy for under-35s</div>
+        </div>
+        <div class="card-icon blue">📉</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-val">36.7%</div>
+          <div class="delta down">→ 32.8%  (−3.9 pp)</div>
+          <div class="stat-label">Men 20–34 w/ parents</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">24.6%</div>
+          <div class="delta down">→ 22.3%  (−2.3 pp)</div>
+          <div class="stat-label">Women 20–34 w/ parents</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val pos">75</div>
+          <div class="delta" style="color:var(--slate-500)">of 743 eligible</div>
+          <div class="stat-label">projected movers</div>
+        </div>
+      </div>
+      <hr class="div">
+      <div style="font-size:.75rem;color:var(--slate-500);margin-bottom:.4rem">Move-out propensity by income band</div>
+      <div class="chart-sm"><canvas id="s1Chart"></canvas></div>
+      <p class="card-note">Each 15 pp subsidy lifts affordability by one income-band tier. 65% take-up rate applied.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">💍 Marriage age correlation</div>
+          <div class="card-desc">Expected marriage age vs living at home</div>
+        </div>
+        <div class="card-icon amber">📈</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-val" style="font-size:1.25rem">−0.017</div>
+          <div class="stat-label">Pearson r</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">34.1</div>
+          <div class="stat-label">ONS mean<br>marriage age (M)</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">32.0</div>
+          <div class="stat-label">ONS mean<br>marriage age (F)</div>
+        </div>
+      </div>
+      <hr class="div">
+      <div style="font-size:.75rem;color:var(--slate-500);margin-bottom:.4rem">% living with parents by expected marriage age</div>
+      <div class="chart-sm"><canvas id="s2Chart"></canvas></div>
+      <p class="card-note">Near-zero correlation — housing tenure is driven by age and income, not stated marriage intentions.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">💷 Wage floor policy</div>
+          <div class="card-desc">All 22–34s lifted to £30k income band</div>
+        </div>
+        <div class="card-icon green">📊</div>
+      </div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-val">36.7%</div>
+          <div class="delta down">→ 30.6%  (−6.0 pp)</div>
+          <div class="stat-label">Men 20–34 w/ parents</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val">24.6%</div>
+          <div class="delta down">→ 19.1%  (−5.5 pp)</div>
+          <div class="stat-label">Women 20–34 w/ parents</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val pos">−1.1</div>
+          <div class="delta" style="color:var(--slate-500)">pp overall</div>
+          <div class="stat-label">w/ parents change</div>
+        </div>
+      </div>
+      <hr class="div">
+      <div style="font-size:.75rem;color:var(--slate-500);margin-bottom:.4rem">Baseline vs wage floor — key metrics (%)</div>
+      <div class="chart-sm"><canvas id="s3Chart"></canvas></div>
+      <p class="card-note">Stronger effect than housing subsidy alone. Women 20–34 see the largest shift (−5.5 pp).</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     INTERACTIVE POLICY EXPLORER
+═══════════════════════════════════════════════════════ -->
+<section>
+  <h2>🔬 Interactive policy explorer</h2>
+  <p class="section-sub">Stack multiple levers and run any combination to see projected effects on household formation.</p>
+
+  <div class="explorer-wrap">
+
+    <!-- Controls header -->
+    <div class="explorer-header">
+      <h3>Policy levers</h3>
+      <div style="display:flex;align-items:center;gap:.75rem">
+        <span style="font-size:.8rem;color:var(--slate-500)">Active:</span>
+        <span class="lever-count-badge zero" id="leverCount">0 levers</span>
+      </div>
+    </div>
+
+    <!-- 2 × 2 policy group grid -->
+    <div class="policy-grid">
+
+      <!-- ── HOUSING ─────────────────────── -->
+      <div class="policy-group">
+        <div class="group-header">
+          <div class="group-pip housing"></div>
+          <span class="group-label housing">🏠 Housing policies</span>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">
+            Housing cost subsidy
+            <em id="subsidyLabel">0%</em>
+          </div>
+          <div style="display:flex;align-items:center;gap:.4rem;margin-bottom:.3rem">
+            <select id="subsidyAge" style="width:auto;flex:0 0 130px;font-size:.75rem">
+              <option value="18-34">Ages 18–34</option>
+              <option value="18-24">Ages 18–24</option>
+              <option value="25-29">Ages 25–29</option>
+              <option value="30-34">Ages 30–34</option>
+            </select>
+            <span style="font-size:.72rem;color:var(--slate-400)">target age</span>
+          </div>
+          <div class="range-row">
+            <input type="range" id="subsidy" min="0" max="50" step="5" value="0">
+            <span class="range-val" id="subsidyOut">0%</span>
+          </div>
+          <div class="ctl-hint">Reduces effective rental/purchase cost for the target cohort.</div>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">
+            Rental supply increase
+            <em id="rentalLabel">0%</em>
+          </div>
+          <div class="range-row">
+            <input type="range" id="rentalSupply" min="0" max="40" step="5" value="0" class="green">
+            <span class="range-val green" id="rentalOut">0%</span>
+          </div>
+          <div class="ctl-hint">New homes / planning reform. Each 10% supply lift ≈ 5–7% rent reduction.</div>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">Help to Buy age cap</div>
+          <select id="helpToBuy">
+            <option value="35">Current: under 35 (baseline)</option>
+            <option value="40">Extend to under 40</option>
+            <option value="45">Extend to under 45</option>
+            <option value="none">Remove age cap</option>
+          </select>
+          <div class="ctl-hint">Broadens mortgage guarantee scheme eligibility.</div>
+        </div>
+      </div>
+
+      <!-- ── INCOME ──────────────────────── -->
+      <div class="policy-group">
+        <div class="group-header">
+          <div class="group-pip income"></div>
+          <span class="group-label income">💷 Income policies</span>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">Income floor for 22–34s</div>
+          <select id="incomeFloor">
+            <option value="none">No change (baseline)</option>
+            <option value="25k">£25,000 floor</option>
+            <option value="30k">£30,000 floor</option>
+            <option value="35k">£35,000 floor</option>
+          </select>
+          <div class="ctl-hint">Wage floor, universal credit top-up, or targeted tax credit.</div>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">
+            Student debt write-off
+            <em id="debtLabel">0%</em>
+          </div>
+          <div class="range-row">
+            <input type="range" id="studentDebt" min="0" max="100" step="10" value="0" class="green">
+            <span class="range-val green" id="debtOut">0%</span>
+          </div>
+          <div class="ctl-hint">Reduces monthly repayments, increasing disposable income and move-out & marriage propensity.</div>
+        </div>
+      </div>
+
+      <!-- ── FAMILY & PARTNERSHIP ─────────── -->
+      <div class="policy-group">
+        <div class="group-header">
+          <div class="group-pip family"></div>
+          <span class="group-label family">💍 Family &amp; partnership policies</span>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">Marriage tax incentive</div>
+          <div class="toggle-row">
+            <span class="toggle-desc">+£1,500/yr tax benefit for married couples (28–35s)</span>
+            <label class="toggle">
+              <input type="checkbox" id="marriageTax">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">
+            Childcare cost reduction
+            <em id="childcareLabel">0%</em>
+          </div>
+          <div class="range-row">
+            <input type="range" id="childcare" min="0" max="50" step="5" value="0" class="purple">
+            <span class="range-val purple" id="childcareOut">0%</span>
+          </div>
+          <div class="ctl-hint">Affects partnership formation and cohabitation rates for ages 28–40.</div>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">Shared parental leave equalisation</div>
+          <div class="toggle-row">
+            <span class="toggle-desc">Up to 26 weeks each — reduces income penalty for couples (25–35s)</span>
+            <label class="toggle">
+              <input type="checkbox" id="sharedLeave">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REGIONAL ────────────────────── -->
+      <div class="policy-group">
+        <div class="group-header">
+          <div class="group-pip regional"></div>
+          <span class="group-label regional">🗺️ Regional policy</span>
+        </div>
+
+        <div class="ctl">
+          <div class="ctl-label">
+            London 20–34s relocating to lower-cost regions
+            <em id="regionalLabel">0%</em>
+          </div>
+          <div class="range-row">
+            <input type="range" id="regional" min="0" max="20" step="2" value="0" class="teal">
+            <span class="range-val teal" id="regionalOut">0%</span>
+          </div>
+          <div class="ctl-hint">Regional rebalancing incentive — rail investment, remote-work grants, affordable housing quotas in commuter zones.</div>
+        </div>
+
+        <div style="margin-top:1rem;padding:.75rem;background:var(--teal-50);border-radius:8px;font-size:.75rem;color:var(--teal-700);line-height:1.5">
+          London's higher cost baseline means a 20% relocation of its 20–34 cohort (≈2,600 people in this dataset) reduces the effective housing cost threshold for those individuals, boosting move-out rates and cohabitation.
+        </div>
+      </div>
+
+    </div><!-- /policy-grid -->
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <button class="btn-run" id="runBtn">▶&nbsp; Run scenario</button>
+      <button class="btn-reset" id="resetBtn">↺ Reset all</button>
+      <span class="model-note">
+        Diminishing returns applied for overlapping policies · 65% take-up rate · illustrative projections
+      </span>
+    </div>
+
+    <!-- Results -->
+    <div class="results-section">
+
+      <div class="chart-pane">
+        <div class="pane-title">Projected outcomes vs baseline</div>
+
+        <!-- 4 metric chips -->
+        <div class="metric-chips" style="margin-bottom:1rem">
+          <div class="metric-chip">
+            <div class="chip-val"  id="chip-men-val">—</div>
+            <div class="chip-base">Baseline 36.7%</div>
+            <div class="chip-delta nil" id="chip-men-d">—</div>
+            <div class="chip-label">Men 20–34 w/ parents</div>
+          </div>
+          <div class="metric-chip">
+            <div class="chip-val"  id="chip-women-val">—</div>
+            <div class="chip-base">Baseline 24.6%</div>
+            <div class="chip-delta nil" id="chip-women-d">—</div>
+            <div class="chip-label">Women 20–34 w/ parents</div>
+          </div>
+          <div class="metric-chip">
+            <div class="chip-val"  id="chip-marr-val">—</div>
+            <div class="chip-base">Baseline 40.4%</div>
+            <div class="chip-delta nil" id="chip-marr-d">—</div>
+            <div class="chip-label">Marriage rate 28–35</div>
+          </div>
+          <div class="metric-chip">
+            <div class="chip-val"  id="chip-cohab-val">—</div>
+            <div class="chip-base">Baseline 26.5%</div>
+            <div class="chip-delta nil" id="chip-cohab-d">—</div>
+            <div class="chip-label">Cohabitation rate 25–34</div>
+          </div>
+        </div>
+
+        <div class="chart-lg"><canvas id="mainChart"></canvas></div>
+      </div>
+
+      <div class="summary-pane">
+        <div class="pane-title">Plain-English summary</div>
+        <div id="summaryBox" class="summary-box">
+          <div class="empty-state">
+            <div class="empty-icon">🎚️</div>
+            <div class="empty-text">
+              Set one or more policy levers above and click <strong>Run scenario</strong> to see a plain-English projection of the combined effects.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /results-section -->
+
+  </div><!-- /explorer-wrap -->
+</section>
+
+</main>
+
+<footer>
+  <p>
+    Synthetic population of 10,000 anchored to
+    <a href="https://www.ons.gov.uk" target="_blank">ONS 2024</a> mid-year estimates, Census 2021 ethnicity, and ONS Marriage Statistics 2022.
+    Built with <strong>CitizenCode</strong> · <code>generate_population.py</code> + <code>scenario_engine.py</code>.
+  </p>
+  <p style="margin-top:.35rem">Projections are illustrative. Not for policy use without validation against real administrative data.</p>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// EMBEDDED DATA (from scenario_engine.py output)
+// ═══════════════════════════════════════════════════════════
+
+const BASELINE = {
+  men2034:       36.7,   // % men 20-34 living with parents
+  women2034:     24.6,   // % women 20-34 living with parents
+  marriage2835:  40.4,   // % married, age 28-35 (estimated from generation model)
+  cohabit2534:   26.5,   // % cohabiting, age 25-34 (estimated)
+};
+
+// Scenario 1 detail
+const S1 = [
+  { band: "Under £10k",  eligible: 195, base: 5,  post: 22 },
+  { band: "£10k–£20k",  eligible: 195, base: 22, post: 48 },
+  { band: "£20k–£30k",  eligible: 109, base: 48, post: 72 },
+  { band: "£30k–£40k",  eligible: 108, base: 72, post: 86 },
+  { band: "£40k–£50k",  eligible:  69, base: 86, post: 93 },
+  { band: "£50k–£75k",  eligible:  45, base: 93, post: 97 },
+  { band: "£75k+",      eligible:  22, base: 97, post: 97 },
+];
+
+// Scenario 2 marriage age correlation
+const S2 = {
+  labels: ["18–22","23–25","26–28","29–31","32–34","35–37","38–40","41+"],
+  vals:   [13.3, 9.3, 12.2, 10.9, 9.9, 9.3, 10.4, 10.5],
+};
+
+// Scenario 3 wage floor comparison
+const S3 = {
+  labels:   ["Overall", "Men 20–34", "Women 20–34"],
+  baseline: [29.0, 36.7, 24.6],
+  scenario: [27.9, 30.6, 19.1],
+};
+
+// ═══════════════════════════════════════════════════════════
+// INTERACTIVE MODEL
+// ═══════════════════════════════════════════════════════════
+
+// Per-lever effect coefficients (calibrated to computed scenario data)
+// menParents / womenParents = pp reduction in living-with-parents rate
+// marriage / cohabit        = pp change in rate for relevant age group
+
+const EFF = {
+  // Subsidy: per 1pp subsidy for 18-34 all (age group modifiers applied separately)
+  subsidy:     { men: -0.195, women: -0.115 },
+  // Rental supply: per 1pp increase
+  rental:      { men: -0.12,  women: -0.07  },
+  // Help to Buy extensions (total effect from baseline of age-35 cap)
+  h2b: {
+    '35':   { men:  0,    women:  0    },
+    '40':   { men: -1.5,  women: -1.0  },
+    '45':   { men: -2.2,  women: -1.4  },
+    'none': { men: -2.8,  women: -1.8  },
+  },
+  // Income floor (total effects, calibrated to S3 for £30k)
+  floor: {
+    'none': { men: 0,    women: 0,    marr: 0,   cohab: 0   },
+    '25k':  { men: -3.0, women: -2.0, marr: 0.5, cohab: 0.3 },
+    '30k':  { men: -6.0, women: -5.5, marr: 1.0, cohab: 0.5 },
+    '35k':  { men: -8.5, women: -7.5, marr: 1.5, cohab: 0.8 },
+  },
+  // Student debt write-off: per 1% of debt cancelled
+  debt:        { men: -0.015, women: -0.010, marr: 0.008, cohab: 0.004 },
+  // Marriage tax incentive (toggle)
+  marriageTax: { marr: 2.0 },
+  // Childcare: per 1% cost reduction
+  childcare:   { men: -0.010, women: -0.016, marr: 0.030, cohab: 0.040 },
+  // Shared parental leave (toggle)
+  sharedLeave: { women: -0.3, marr: 0.5, cohab: 1.0 },
+  // Regional: per 1% of London 20-34s relocated
+  regional:    { men: -0.080, women: -0.050, cohab: 0.030 },
+};
+
+// Age group multipliers for subsidy lever
+const AGE_MULT = { '18-34': 1.0, '18-24': 0.7, '25-29': 0.85, '30-34': 0.9 };
+
+function getLeverValues() {
+  return {
+    subsidy:     +document.getElementById('subsidy').value,
+    subsidyAge:  document.getElementById('subsidyAge').value,
+    rental:      +document.getElementById('rentalSupply').value,
+    h2b:         document.getElementById('helpToBuy').value,
+    floor:       document.getElementById('incomeFloor').value,
+    debt:        +document.getElementById('studentDebt').value,
+    marriageTax: document.getElementById('marriageTax').checked,
+    childcare:   +document.getElementById('childcare').value,
+    sharedLeave: document.getElementById('sharedLeave').checked,
+    regional:    +document.getElementById('regional').value,
+  };
+}
+
+function countActive(lv) {
+  let n = 0;
+  if (lv.subsidy > 0)          n++;
+  if (lv.rental > 0)           n++;
+  if (lv.h2b !== '35')         n++;
+  if (lv.floor !== 'none')     n++;
+  if (lv.debt > 0)             n++;
+  if (lv.marriageTax)          n++;
+  if (lv.childcare > 0)        n++;
+  if (lv.sharedLeave)          n++;
+  if (lv.regional > 0)         n++;
+  return n;
+}
+
+function runModel(lv) {
+  const d = { men: 0, women: 0, marr: 0, cohab: 0 };
+
+  // 1. Housing cost subsidy
+  const am = AGE_MULT[lv.subsidyAge] ?? 1.0;
+  d.men   += EFF.subsidy.men   * lv.subsidy * am;
+  d.women += EFF.subsidy.women * lv.subsidy * am;
+
+  // 2. Rental supply
+  d.men   += EFF.rental.men   * lv.rental;
+  d.women += EFF.rental.women * lv.rental;
+
+  // 3. Help to Buy
+  const h2b = EFF.h2b[lv.h2b] ?? EFF.h2b['35'];
+  d.men   += h2b.men;
+  d.women += h2b.women;
+
+  // 4. Income floor
+  const fl = EFF.floor[lv.floor] ?? EFF.floor['none'];
+  d.men   += fl.men;
+  d.women += fl.women;
+  d.marr  += fl.marr;
+  d.cohab += fl.cohab;
+
+  // 5. Student debt write-off
+  d.men   += EFF.debt.men   * lv.debt;
+  d.women += EFF.debt.women * lv.debt;
+  d.marr  += EFF.debt.marr  * lv.debt;
+  d.cohab += EFF.debt.cohab * lv.debt;
+
+  // 6. Marriage tax incentive
+  if (lv.marriageTax) d.marr += EFF.marriageTax.marr;
+
+  // 7. Childcare
+  d.men   += EFF.childcare.men   * lv.childcare;
+  d.women += EFF.childcare.women * lv.childcare;
+  d.marr  += EFF.childcare.marr  * lv.childcare;
+  d.cohab += EFF.childcare.cohab * lv.childcare;
+
+  // 8. Shared parental leave
+  if (lv.sharedLeave) {
+    d.women += EFF.sharedLeave.women;
+    d.marr  += EFF.sharedLeave.marr;
+    d.cohab += EFF.sharedLeave.cohab;
+  }
+
+  // 9. Regional rebalancing
+  d.men   += EFF.regional.men   * lv.regional;
+  d.women += EFF.regional.women * lv.regional;
+  d.cohab += EFF.regional.cohab * lv.regional;
+
+  // Diminishing returns for stacked policies (real-world overlap)
+  const n = countActive(lv);
+  const damp = n > 3 ? Math.pow(0.95, n - 3) : 1.0;
+
+  return {
+    men:   Math.max(5,  +(BASELINE.men2034      + d.men   * damp).toFixed(1)),
+    women: Math.max(3,  +(BASELINE.women2034    + d.women * damp).toFixed(1)),
+    marr:  Math.min(75, Math.max(25, +(BASELINE.marriage2835 + d.marr  * damp).toFixed(1))),
+    cohab: Math.min(45, Math.max(15, +(BASELINE.cohabit2534  + d.cohab * damp).toFixed(1))),
+    deltas: {
+      men:   +(d.men   * damp).toFixed(1),
+      women: +(d.women * damp).toFixed(1),
+      marr:  +(d.marr  * damp).toFixed(1),
+      cohab: +(d.cohab * damp).toFixed(1),
+    },
+    n,
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// PLAIN-ENGLISH SUMMARY GENERATOR
+// ═══════════════════════════════════════════════════════════
+
+function leverDescriptions(lv) {
+  const parts = [];
+  if (lv.subsidy > 0)
+    parts.push(`a ${lv.subsidy}% housing cost subsidy (${lv.subsidyAge.replace('-','–')} year olds)`);
+  if (lv.rental > 0)
+    parts.push(`a ${lv.rental}% increase in rental supply`);
+  if (lv.h2b !== '35')
+    parts.push(lv.h2b === 'none' ? 'removal of the Help to Buy age cap' : `Help to Buy extended to under-${lv.h2b}s`);
+  if (lv.floor !== 'none')
+    parts.push(`a £${lv.floor.replace('k','0,000')} income floor for 22–34s`);
+  if (lv.debt > 0)
+    parts.push(`${lv.debt}% student debt write-off`);
+  if (lv.marriageTax)
+    parts.push('a marriage tax incentive');
+  if (lv.childcare > 0)
+    parts.push(`a ${lv.childcare}% reduction in childcare costs`);
+  if (lv.sharedLeave)
+    parts.push('shared parental leave equalisation');
+  if (lv.regional > 0)
+    parts.push(`${lv.regional}% London-to-regions relocation incentive`);
+  return parts;
+}
+
+function biggestDriver(lv, result) {
+  const candidates = [];
+  const am = AGE_MULT[lv.subsidyAge] ?? 1.0;
+  if (lv.subsidy > 0)
+    candidates.push({ label: `${lv.subsidy}% housing subsidy`, impact: Math.abs(EFF.subsidy.men * lv.subsidy * am) });
+  if (lv.rental > 0)
+    candidates.push({ label: `${lv.rental}% rental supply increase`, impact: Math.abs(EFF.rental.men * lv.rental) });
+  const h2bEff = EFF.h2b[lv.h2b] ?? EFF.h2b['35'];
+  if (Math.abs(h2bEff.men) > 0)
+    candidates.push({ label: 'Help to Buy extension', impact: Math.abs(h2bEff.men) });
+  const flEff = EFF.floor[lv.floor] ?? EFF.floor['none'];
+  if (Math.abs(flEff.men) > 0)
+    candidates.push({ label: `£${lv.floor.replace('k','0k')} income floor`, impact: Math.abs(flEff.men) });
+  if (lv.debt > 0)
+    candidates.push({ label: `${lv.debt}% student debt write-off`, impact: Math.abs(EFF.debt.men * lv.debt) });
+  if (lv.childcare > 0)
+    candidates.push({ label: `${lv.childcare}% childcare reduction`, impact: Math.abs(EFF.childcare.cohab * lv.childcare) });
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => b.impact - a.impact);
+  return candidates[0].label;
+}
+
+function buildSummary(lv, result) {
+  const descs = leverDescriptions(lv);
+  if (!descs.length) {
+    return `<div class="empty-state"><div class="empty-icon">🎚️</div><div class="empty-text">No levers active. Set at least one policy lever and run the scenario.</div></div>`;
+  }
+
+  const fmt = (v, base) => {
+    const d = +(v - base).toFixed(1);
+    const sign = d > 0 ? '+' : '';
+    const col = d < 0 ? '#16a34a' : d > 0 ? '#dc2626' : '#94a3b8';
+    return `<strong style="color:${col}">${v}% (${sign}${d} pp)</strong>`;
+  };
+
+  const policyText = descs.length === 1
+    ? descs[0]
+    : descs.slice(0, -1).join(', ') + ' and ' + descs[descs.length - 1];
+
+  const driver = biggestDriver(lv, result);
+
+  const dampNote = result.n > 3
+    ? ` <em style="color:var(--slate-400)">(diminishing returns applied — ${result.n} overlapping levers)</em>`
+    : '';
+
+  return `
+    <div class="summary-headline">Combined scenario: ${result.n} lever${result.n !== 1 ? 's' : ''} active</div>
+    <p style="margin-bottom:.6rem">
+      This scenario applies <strong>${policyText}</strong>.${dampNote}
+    </p>
+    <ul class="summary-bullets">
+      <li>Men 20–34 with parents: ${fmt(result.men, BASELINE.men2034)}</li>
+      <li>Women 20–34 with parents: ${fmt(result.women, BASELINE.women2034)}</li>
+      <li>Marriage rate (28–35): ${fmt(result.marr, BASELINE.marriage2835)}</li>
+      <li>Cohabitation rate (25–34): ${fmt(result.cohab, BASELINE.cohabit2534)}</li>
+    </ul>
+    ${driver ? `<div class="summary-driver">Largest single driver on household departure: <strong>${driver}</strong>.</div>` : ''}
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHART SETUP
+// ═══════════════════════════════════════════════════════════
+
+const C = {
+  blue:    '#2563eb', blueA: 'rgba(37,99,235,.18)',
+  green:   '#16a34a', greenA: 'rgba(22,163,74,.18)',
+  amber:   '#d97706', amberA: 'rgba(217,119,6,.18)',
+};
+
+const smOpts = (yMin, yMax) => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${c.raw}%` } } },
+  scales: {
+    x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#94a3b8' } },
+    y: {
+      grid: { color: '#f1f5f9' },
+      ticks: { font: { size: 10 }, color: '#94a3b8', callback: v => v + '%' },
+      min: yMin, max: yMax,
+    },
+  },
+});
+
+// S1 chart
+new Chart(document.getElementById('s1Chart'), {
+  type: 'bar',
+  data: {
+    labels: S1.map(d => d.band),
+    datasets: [
+      { label: 'Baseline', data: S1.map(d => d.base), backgroundColor: C.blueA, borderColor: C.blue, borderWidth: 1.5, borderRadius: 3 },
+      { label: 'Post-subsidy', data: S1.map(d => d.post), backgroundColor: C.greenA, borderColor: C.green, borderWidth: 1.5, borderRadius: 3 },
+    ],
+  },
+  options: {
+    ...smOpts(0, 100),
+    plugins: {
+      legend: { display: true, position: 'top', labels: { boxWidth: 8, font: { size: 9 }, color: '#64748b', padding: 8 } },
+      tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}%` } },
+    },
+  },
+});
+
+// S2 chart
+new Chart(document.getElementById('s2Chart'), {
+  type: 'line',
+  data: {
+    labels: S2.labels,
+    datasets: [{
+      data: S2.vals,
+      borderColor: C.amber, backgroundColor: C.amberA,
+      borderWidth: 2, pointRadius: 3, pointBackgroundColor: C.amber,
+      fill: true, tension: 0.35,
+    }],
+  },
+  options: smOpts(5, 18),
+});
+
+// S3 chart
+new Chart(document.getElementById('s3Chart'), {
+  type: 'bar',
+  data: {
+    labels: S3.labels,
+    datasets: [
+      { label: 'Baseline', data: S3.baseline, backgroundColor: C.blueA, borderColor: C.blue, borderWidth: 1.5, borderRadius: 3 },
+      { label: 'Wage floor', data: S3.scenario, backgroundColor: C.greenA, borderColor: C.green, borderWidth: 1.5, borderRadius: 3 },
+    ],
+  },
+  options: {
+    ...smOpts(0, 45),
+    plugins: {
+      legend: { display: true, position: 'top', labels: { boxWidth: 8, font: { size: 9 }, color: '#64748b', padding: 8 } },
+      tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw}%` } },
+    },
+  },
+});
+
+// Main interactive chart
+const mainChart = new Chart(document.getElementById('mainChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Men 20–34\nw/ parents', 'Women 20–34\nw/ parents', 'Marriage rate\n28–35', 'Cohabitation\n25–34'],
+    datasets: [
+      {
+        label: 'Baseline',
+        data: [BASELINE.men2034, BASELINE.women2034, BASELINE.marriage2835, BASELINE.cohabit2534],
+        backgroundColor: C.blueA, borderColor: C.blue, borderWidth: 2, borderRadius: 5,
+      },
+      {
+        label: 'Your scenario',
+        data: [null, null, null, null],
+        backgroundColor: C.greenA, borderColor: C.green, borderWidth: 2, borderRadius: 5,
+      },
+    ],
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: true, position: 'top',
+        labels: { boxWidth: 12, font: { size: 11 }, color: '#64748b', padding: 14 },
+      },
+      tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.raw ?? '—'}%` } },
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#64748b' } },
+      y: {
+        grid: { color: '#f1f5f9' },
+        ticks: { font: { size: 11 }, color: '#94a3b8', callback: v => v + '%' },
+        beginAtZero: true, max: 50,
+        title: { display: true, text: '% of cohort', font: { size: 11 }, color: '#94a3b8' },
+      },
+    },
+    animation: { duration: 550, easing: 'easeInOutQuart' },
+  },
+});
+
+// ═══════════════════════════════════════════════════════════
+// UI WIRING
+// ═══════════════════════════════════════════════════════════
+
+function bindSlider(id, outId, suffix, labelId) {
+  const el  = document.getElementById(id);
+  const out = document.getElementById(outId);
+  const lbl = labelId ? document.getElementById(labelId) : null;
+  const update = () => {
+    const v = el.value + suffix;
+    out.textContent = v;
+    if (lbl) lbl.textContent = v;
+    refreshLeverCount();
+  };
+  el.addEventListener('input', update);
+}
+
+bindSlider('subsidy',     'subsidyOut',    '%', 'subsidyLabel');
+bindSlider('rentalSupply','rentalOut',     '%', 'rentalLabel');
+bindSlider('studentDebt', 'debtOut',       '%', 'debtLabel');
+bindSlider('childcare',   'childcareOut',  '%', 'childcareLabel');
+bindSlider('regional',    'regionalOut',   '%', 'regionalLabel');
+
+['helpToBuy', 'incomeFloor', 'subsidyAge'].forEach(id =>
+  document.getElementById(id).addEventListener('change', refreshLeverCount)
+);
+['marriageTax', 'sharedLeave'].forEach(id =>
+  document.getElementById(id).addEventListener('change', refreshLeverCount)
+);
+
+function refreshLeverCount() {
+  const lv = getLeverValues();
+  const n  = countActive(lv);
+  const badge = document.getElementById('leverCount');
+  badge.textContent = n === 0 ? '0 levers' : `${n} lever${n !== 1 ? 's' : ''}`;
+  badge.className   = 'lever-count-badge' + (n === 0 ? ' zero' : '');
+}
+
+function fmtDelta(val, base, invertGood) {
+  const d = +(val - base).toFixed(1);
+  const sign = d > 0 ? '+' : '';
+  // For parents rate: lower is better. For marriage/cohabit: higher is better.
+  const isBetter = invertGood ? d > 0 : d < 0;
+  const cls = d === 0 ? 'nil' : isBetter ? 'neg' : 'pos';
+  return { text: `${sign}${d} pp`, cls };
+}
+
+function updateChips(r) {
+  const pairs = [
+    ['chip-men-val',   'chip-men-d',   r.men,   BASELINE.men2034,      false],
+    ['chip-women-val', 'chip-women-d', r.women, BASELINE.women2034,    false],
+    ['chip-marr-val',  'chip-marr-d',  r.marr,  BASELINE.marriage2835, true ],
+    ['chip-cohab-val', 'chip-cohab-d', r.cohab, BASELINE.cohabit2534,  true ],
+  ];
+  pairs.forEach(([vid, did, val, base, inv]) => {
+    document.getElementById(vid).textContent = val + '%';
+    const { text, cls } = fmtDelta(val, base, inv);
+    const el = document.getElementById(did);
+    el.textContent = text;
+    el.className = 'chip-delta ' + cls;
+  });
+}
+
+document.getElementById('runBtn').addEventListener('click', () => {
+  const lv = getLeverValues();
+  const r  = runModel(lv);
+
+  // Update chart
+  mainChart.data.datasets[1].data = [r.men, r.women, r.marr, r.cohab];
+  mainChart.update();
+
+  // Update chips
+  updateChips(r);
+
+  // Update summary
+  document.getElementById('summaryBox').innerHTML = buildSummary(lv, r);
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  // Sliders
+  ['subsidy','rentalSupply','studentDebt','childcare','regional'].forEach(id => {
+    document.getElementById(id).value = 0;
+  });
+  // Selects
+  document.getElementById('subsidyAge').value  = '18-34';
+  document.getElementById('helpToBuy').value   = '35';
+  document.getElementById('incomeFloor').value = 'none';
+  // Toggles
+  document.getElementById('marriageTax').checked  = false;
+  document.getElementById('sharedLeave').checked  = false;
+  // Labels
+  ['subsidyOut','rentalOut','debtOut','childcareOut','regionalOut'].forEach(id =>
+    document.getElementById(id).textContent = '0%'
+  );
+  ['subsidyLabel','rentalLabel','debtLabel','childcareLabel','regionalLabel'].forEach(id =>
+    document.getElementById(id).textContent = '0%'
+  );
+  // Chart
+  mainChart.data.datasets[1].data = [null, null, null, null];
+  mainChart.update();
+  // Chips
+  ['chip-men-val','chip-women-val','chip-marr-val','chip-cohab-val'].forEach(id =>
+    document.getElementById(id).textContent = '—'
+  );
+  ['chip-men-d','chip-women-d','chip-marr-d','chip-cohab-d'].forEach(id => {
+    document.getElementById(id).textContent = '—';
+    document.getElementById(id).className = 'chip-delta nil';
+  });
+  // Summary
+  document.getElementById('summaryBox').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">🎚️</div>
+      <div class="empty-text">
+        Set one or more policy levers above and click <strong>Run scenario</strong> to see a plain-English projection of the combined effects.
+      </div>
+    </div>`;
+  refreshLeverCount();
+});
+
+// Init
+refreshLeverCount();
+</script>
+</body>
+</html>

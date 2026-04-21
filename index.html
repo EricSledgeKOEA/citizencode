@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CitizenCode</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-600: #2563eb;
+    --blue-700: #1d4ed8;
+    --blue-50:  #eff6ff;
+    --blue-100: #dbeafe;
+    --green-600:#16a34a;
+    --slate-50: #f8fafc;
+    --slate-100:#f1f5f9;
+    --slate-200:#e2e8f0;
+    --slate-400:#94a3b8;
+    --slate-500:#64748b;
+    --slate-700:#334155;
+    --slate-800:#1e293b;
+    --slate-900:#0f172a;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--slate-50);
+    color: var(--slate-800);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Header ── */
+  header {
+    background: #fff;
+    border-bottom: 1px solid var(--slate-200);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,.07);
+  }
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--blue-600), var(--green-600));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: .85rem;
+  }
+  .logo-name { font-size: 1rem; font-weight: 700; color: var(--slate-900); }
+  .logo-tld  { color: var(--blue-600); }
+  nav { margin-left: auto; display: flex; gap: 1.5rem; }
+  nav a {
+    font-size: .875rem; color: var(--slate-500); text-decoration: none;
+    transition: color .15s;
+  }
+  nav a:hover { color: var(--blue-600); }
+
+  /* ── Hero ── */
+  .hero {
+    max-width: 780px;
+    margin: 5rem auto 3rem;
+    padding: 0 1.5rem;
+    text-align: center;
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: .4rem;
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--blue-600);
+    background: var(--blue-50); border: 1px solid var(--blue-100);
+    border-radius: 999px; padding: .25rem .75rem;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800; line-height: 1.15;
+    color: var(--slate-900);
+    letter-spacing: -.02em;
+    margin-bottom: 1.25rem;
+  }
+  .hero h1 span { color: var(--blue-600); }
+  .hero p {
+    font-size: 1.1rem; color: var(--slate-500);
+    line-height: 1.7; max-width: 580px; margin: 0 auto 2.5rem;
+  }
+
+  /* ── Cards ── */
+  .projects {
+    max-width: 1000px;
+    margin: 0 auto 5rem;
+    padding: 0 1.5rem;
+  }
+  .projects-title {
+    font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--slate-400);
+    margin-bottom: 1.25rem;
+  }
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+  }
+  .project-card {
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    display: flex; flex-direction: column; gap: .75rem;
+    transition: box-shadow .2s, border-color .2s, transform .15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .project-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,.1);
+    border-color: var(--blue-100);
+    transform: translateY(-2px);
+  }
+  .card-top { display: flex; align-items: center; justify-content: space-between; }
+  .card-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: var(--blue-50);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+  .card-arrow { color: var(--slate-300); font-size: 1.1rem; transition: color .15s, transform .15s; }
+  .project-card:hover .card-arrow { color: var(--blue-600); transform: translateX(3px); }
+  .card-title   { font-size: 1rem; font-weight: 700; color: var(--slate-900); }
+  .card-desc    { font-size: .85rem; color: var(--slate-500); line-height: 1.55; flex: 1; }
+  .card-tags    { display: flex; flex-wrap: wrap; gap: .4rem; }
+  .tag {
+    font-size: .7rem; font-weight: 600;
+    padding: .15rem .5rem; border-radius: 999px;
+    background: var(--slate-100); color: var(--slate-600);
+  }
+  .tag.blue { background: var(--blue-50); color: var(--blue-600); }
+
+  /* ── About strip ── */
+  .about-strip {
+    background: var(--slate-900);
+    color: var(--slate-400);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    margin-top: auto;
+  }
+  .about-strip h2 { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: .75rem; }
+  .about-strip p  { font-size: .875rem; max-width: 560px; margin: 0 auto; line-height: 1.7; }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--slate-900);
+    border-top: 1px solid rgba(255,255,255,.06);
+    padding: 1.25rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: .75rem;
+  }
+  footer span { font-size: .78rem; color: var(--slate-500); }
+  footer a     { font-size: .78rem; color: var(--slate-400); text-decoration: none; }
+  footer a:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">CC</div>
+  <span class="logo-name">Citizen<span class="logo-tld">Code</span></span>
+  <nav>
+    <a href="#projects">Projects</a>
+    <a href="#about">About</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-eyebrow">🇬🇧 citizencode.uk</div>
+    <h1>Policy modelling<br>made <span>open</span></h1>
+    <p>
+      CitizenCode builds transparent, data-driven tools that let anyone explore
+      how UK policy decisions ripple through real populations. Anchored to ONS data.
+      No jargon, no paywalls.
+    </p>
+  </section>
+
+  <section class="projects" id="projects">
+    <div class="projects-title">Tools &amp; explorers</div>
+    <div class="project-grid">
+
+      <a class="project-card" href="policy_explorer.html">
+        <div class="card-top">
+          <div class="card-icon">🔬</div>
+          <span class="card-arrow">→</span>
+        </div>
+        <div class="card-title">UK Policy Explorer</div>
+        <div class="card-desc">
+          Stack housing, income, family, and regional policy levers against a
+          synthetic population of 10,000 individuals anchored to ONS 2024 data.
+          See projected changes in household formation, marriage rates, and more.
+        </div>
+        <div class="card-tags">
+          <span class="tag blue">Interactive</span>
+          <span class="tag">ONS 2024</span>
+          <span class="tag">Housing</span>
+          <span class="tag">Demographics</span>
+        </div>
+      </a>
+
+      <!-- Placeholder card — future tool -->
+      <div class="project-card" style="opacity:.45;pointer-events:none;cursor:default">
+        <div class="card-top">
+          <div class="card-icon">🏥</div>
+          <span class="card-arrow" style="opacity:0">→</span>
+        </div>
+        <div class="card-title">NHS Workforce Explorer</div>
+        <div class="card-desc">
+          Model the effect of pay, training pipeline, and retention policies on
+          NHS staffing gaps across regions and specialties.
+        </div>
+        <div class="card-tags">
+          <span class="tag">Coming soon</span>
+        </div>
+      </div>
+
+      <!-- Placeholder card — future tool -->
+      <div class="project-card" style="opacity:.45;pointer-events:none;cursor:default">
+        <div class="card-top">
+          <div class="card-icon">⚡</div>
+          <span class="card-arrow" style="opacity:0">→</span>
+        </div>
+        <div class="card-title">Net Zero Transition Modeller</div>
+        <div class="card-desc">
+          Explore how carbon pricing, green job incentives, and retrofit programmes
+          interact across income deciles and UK regions.
+        </div>
+        <div class="card-tags">
+          <span class="tag">Coming soon</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<section class="about-strip" id="about">
+  <h2>What is CitizenCode?</h2>
+  <p>
+    A personal project building open-source policy simulation tools for the UK.
+    All models use publicly available ONS, HMRC, and UKHLS data. The code is on
+    GitHub — read it, fork it, improve it.
+  </p>
+</section>
+
+<footer>
+  <span>© 2025 CitizenCode · citizencode.uk</span>
+  <a href="https://github.com/EricSledgeKOEA/citizencode" target="_blank">GitHub →</a>
+</footer>
+
+</body>
+</html>
