@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>UK Policy Explorer – CitizenCode</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
-        integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3oD+sCoJrzXJ+yKwtkiQMWhiAgaN+nAqTYqUXqe9aTzbJEgP7bGJqQ=="
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -727,6 +725,7 @@ footer a { color: var(--blue-600); text-decoration: none; }
 </footer>
 
 <script>
+document.addEventListener('DOMContentLoaded', function () {
 // ═══════════════════════════════════════════════════════════
 // EMBEDDED DATA (from scenario_engine.py output)
 // ═══════════════════════════════════════════════════════════
@@ -916,7 +915,7 @@ function leverDescriptions(lv) {
   if (lv.h2b !== '35')
     parts.push(lv.h2b === 'none' ? 'removal of the Help to Buy age cap' : `Help to Buy extended to under-${lv.h2b}s`);
   if (lv.floor !== 'none')
-    parts.push(`a £${lv.floor.replace('k','0,000')} income floor for 22–34s`);
+    parts.push(`a £${lv.floor.replace('k',',000')} income floor for 22–34s`);
   if (lv.debt > 0)
     parts.push(`${lv.debt}% student debt write-off`);
   if (lv.marriageTax)
@@ -942,7 +941,7 @@ function biggestDriver(lv, result) {
     candidates.push({ label: 'Help to Buy extension', impact: Math.abs(h2bEff.men) });
   const flEff = EFF.floor[lv.floor] ?? EFF.floor['none'];
   if (Math.abs(flEff.men) > 0)
-    candidates.push({ label: `£${lv.floor.replace('k','0k')} income floor`, impact: Math.abs(flEff.men) });
+    candidates.push({ label: `£${lv.floor.replace('k',',000')} income floor`, impact: Math.abs(flEff.men) });
   if (lv.debt > 0)
     candidates.push({ label: `${lv.debt}% student debt write-off`, impact: Math.abs(EFF.debt.men * lv.debt) });
   if (lv.childcare > 0)
@@ -1170,18 +1169,21 @@ function updateChips(r) {
 }
 
 document.getElementById('runBtn').addEventListener('click', () => {
-  const lv = getLeverValues();
-  const r  = runModel(lv);
+  try {
+    const lv = getLeverValues();
+    const r  = runModel(lv);
 
-  // Update chart
-  mainChart.data.datasets[1].data = [r.men, r.women, r.marr, r.cohab];
-  mainChart.update();
+    mainChart.data.datasets[1].data = [r.men, r.women, r.marr, r.cohab];
+    mainChart.update();
 
-  // Update chips
-  updateChips(r);
+    updateChips(r);
 
-  // Update summary
-  document.getElementById('summaryBox').innerHTML = buildSummary(lv, r);
+    document.getElementById('summaryBox').innerHTML = buildSummary(lv, r);
+  } catch (err) {
+    console.error('Run scenario error:', err);
+    document.getElementById('summaryBox').innerHTML =
+      `<div style="color:#dc2626;font-size:.82rem;padding:.5rem">Error: ${err.message}. Check the browser console.</div>`;
+  }
 });
 
 document.getElementById('resetBtn').addEventListener('click', () => {
@@ -1227,6 +1229,8 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 
 // Init
 refreshLeverCount();
+
+}); // end DOMContentLoaded
 </script>
 </body>
 </html>
